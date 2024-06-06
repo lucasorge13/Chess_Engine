@@ -23,6 +23,8 @@ public class Board extends JPanel{
 
   Input input = new Input(this);
 
+  CheckScanner checkScanner = new CheckScanner(this);
+
   public Board(){
     this.setPreferredSize(new Dimension(cols * tileSize, rows * tileSize));
 
@@ -44,7 +46,23 @@ public class Board extends JPanel{
   }
 
   public boolean isValidMove(Move move){
-      return !sameTeam(move.piece, move.capture);
+    if(sameTeam(move.piece, move.capture)){
+      return false;
+    }
+
+    if(!move.piece.isValidMovement(move.newCol, move.newRow)){
+      return false;
+    }
+
+    if(move.piece.moveCollidesWithPiece(move.newCol, move.newRow)){
+      return false;
+    }
+
+    if(checkScanner.isKingChecked(move)){
+      return false;
+    }
+
+    return true;
   }
 
   public boolean sameTeam(Piece p1, Piece p2){
@@ -66,6 +84,15 @@ public class Board extends JPanel{
 
   public void capture(Move move){
     pieceList.remove(move.capture);
+  }
+
+  Piece findKing(boolean isWhite){
+    for(Piece piece : pieceList){
+      if(isWhite == piece.isWhite && piece.name.equals("King")){
+        return piece;
+      }
+    }
+    return null;
   }
 
   public void addPieces(){
@@ -114,6 +141,16 @@ public class Board extends JPanel{
         g2d.setColor((i + j) % 2 == 0 ? Color.white : Color.DARK_GRAY);
 
         g2d.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
+      }
+    }
+
+    if(selectedPiece != null)
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        if (isValidMove(new Move(this, selectedPiece, j, i))) {
+          g2d.setColor(new Color(68, 180, 57, 190));
+          g2d.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
+        }
       }
     }
 
