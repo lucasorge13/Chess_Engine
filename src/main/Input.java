@@ -26,6 +26,17 @@ public class Input extends MouseAdapter {
     }
 
     @Override
+    public void mouseDragged(MouseEvent e) {
+
+        if (board.selectedPiece != null) {
+            board.selectedPiece.xPos = e.getX() - board.tileSize / 2;
+            board.selectedPiece.yPos = e.getY() - board.tileSize / 2;
+
+            board.repaint();
+        }
+    }
+
+    @Override
     public void mouseReleased(MouseEvent e) {
         int col = e.getX() / board.tileSize;
         int row = e.getY() / board.tileSize;
@@ -43,16 +54,5 @@ public class Input extends MouseAdapter {
 
         board.selectedPiece = null;
         board.repaint();
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-
-        if (board.selectedPiece != null) {
-            board.selectedPiece.xPos = e.getX() - board.tileSize / 2;
-            board.selectedPiece.yPos = e.getY() - board.tileSize / 2;
-
-            board.repaint();
-        }
     }
 }

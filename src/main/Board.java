@@ -32,10 +32,10 @@ public class Board extends JPanel{
     addPieces();
   }
 
-  public Piece getPiece(int row, int col){
+  public Piece getPiece(int col, int row){
 
     for(Piece piece : pieceList){
-      if(piece.row == row && piece.col == col){
+      if(piece.col == col && piece.row == row){
         return piece;
       }
     }
