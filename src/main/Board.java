@@ -9,6 +9,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class Board extends JPanel{
 
@@ -24,6 +25,10 @@ public class Board extends JPanel{
   Input input = new Input(this);
 
   public int enPassantTile = -1;
+
+  public boolean isWhiteToMove = true;
+
+  public boolean isGameOver = false;
 
   public CheckScanner checkScanner = new CheckScanner(this);
 
@@ -48,6 +53,14 @@ public class Board extends JPanel{
   }
 
   public boolean isValidMove(Move move){
+    if(isGameOver){
+      return false;
+    }
+
+    if(move.piece.isWhite != isWhiteToMove){
+      return false;
+    }
+
     if(sameTeam(move.piece, move.capture)){
       return false;
     }
@@ -77,19 +90,23 @@ public class Board extends JPanel{
 
   public void makeMove(Move move){
 
-    if(move.piece.name.equals("Pawn")){
-      movePawn(move);
-    } else if(move.piece.name.equals("King")) {
-      moveKing(move);
-    }
-    move.piece.col = move.newCol;
-    move.piece.row = move.newRow;
-    move.piece.xPos = move.newCol * tileSize;
-    move.piece.yPos = move.newRow * tileSize;
+      if(move.piece.name.equals("Pawn")){
+        movePawn(move);
+      } else if(move.piece.name.equals("King")) {
+        moveKing(move);
+      }
+      move.piece.col = move.newCol;
+      move.piece.row = move.newRow;
+      move.piece.xPos = move.newCol * tileSize;
+      move.piece.yPos = move.newRow * tileSize;
 
-    move.piece.isFirstMove = false;
+      move.piece.isFirstMove = false;
 
-    capture(move.capture);
+      capture(move.capture);
+
+      isWhiteToMove = !isWhiteToMove;
+
+      updateGameState();
     }
 
     private void moveKing(Move move){
@@ -186,13 +203,38 @@ public class Board extends JPanel{
       pieceList.add(new Pawn(this, 7, 6, true));
     }
 
+    private void updateGameState(){
+      Piece king = findKing(isWhiteToMove);
+      if(checkScanner.isGameOver(king)){
+        if(checkScanner.isKingChecked(new Move(this, king, king.col, king.row))){
+            System.out.println(isWhiteToMove ? "Black wins!" : "White wins!");
+        } else {
+          System.out.println("Stalemate");
+        }
+        isGameOver = true;
+      } else if(insufficientMaterial(true) && insufficientMaterial(false)){
+        System.out.println("insufficient Material!");
+        isGameOver = true;
+      }
+    }
+
+    private boolean insufficientMaterial(boolean isWhite){
+      ArrayList<String> names = pieceList.stream()
+              .filter(p -> p.isWhite == isWhite)
+              .map(p -> p.name)
+              .collect(Collectors.toCollection(ArrayList::new));
+      if(names.contains("Queen") || names.contains("Pawn") || names.contains("Rook")){
+        return false;
+      }
+      return names.size() < 3;
+    }
+
     public void paintComponent(Graphics g){
       Graphics2D g2d = (Graphics2D) g;
 
       for(int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
           g2d.setColor((i + j) % 2 == 0 ? Color.white : Color.DARK_GRAY);
-
           g2d.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
         }
       }
